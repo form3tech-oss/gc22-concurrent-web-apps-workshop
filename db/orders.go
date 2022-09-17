@@ -13,9 +13,9 @@ func (o OrderStatus) String() string {
 }
 
 type Order struct {
-	ID     string      `json:"id"`
-	Items  []string    `json:"items"`
-	Status string `json:"status"`
+	ID     string     `json:"id"`
+	Items  []LineItem `json:"items"`
+	Status string     `json:"status"`
 }
 
 type Orders struct {
@@ -31,4 +31,13 @@ func NewOrders() *Orders {
 // Upsert creates or updates a new order
 func (n *Orders) Upsert(o Order) {
 	n.orders[o.ID] = o
+}
+
+type LineItem struct {
+	Name  string  `json:"name"`
+	Price float32 `json:"price"`
+}
+
+func NewLineItem(name string, price float32) LineItem {
+	return LineItem{name, price}
 }

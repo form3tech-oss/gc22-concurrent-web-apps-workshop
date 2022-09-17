@@ -3,5 +3,8 @@ GET http://localhost:3000/
 POST http://localhost:3000/orders
 
 {
-    "items":["Solero", "Magnum"]
+    "items":[
+      { "name": "Solero", "price": 1.49 },
+      { "name": "Magnum", "price": 1.99 }
+    ]
 }
