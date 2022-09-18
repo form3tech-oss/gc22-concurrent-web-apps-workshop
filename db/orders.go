@@ -29,6 +29,10 @@ func NewOrders() *Orders {
 	}
 }
 
+func (n *Orders) Get(o string) Order {
+	return n.orders[o]
+}
+
 // Upsert creates or updates a new order
 func (n *Orders) Upsert(o Order) Order {
 	for _, v := range o.Items {

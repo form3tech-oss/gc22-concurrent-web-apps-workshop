@@ -1,5 +1,7 @@
 GET http://localhost:3000/
+
 ###
+# @name createOrder
 POST http://localhost:3000/orders
 
 {
@@ -8,3 +10,7 @@ POST http://localhost:3000/orders
       { "name": "Magnum", "price": 1.99, "quantity": 1 }
     ]
 }
+###
+
+@id = {{createOrder.response.body.order.id}}
+GET http://localhost:3000/orders/{{id}}
