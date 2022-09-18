@@ -55,7 +55,7 @@ func (h *Handler) OrderUpsert(w http.ResponseWriter, r *http.Request) {
 	order.ID = uuid.NewString()
 	order.Status = db.New.String()
 	// Call the repository method corresponding to the operation
-	h.OrdersDB.Upsert(order)
+	order = h.OrdersDB.Upsert(order)
 	resp := &Response{
 		Order: order,
 	}
