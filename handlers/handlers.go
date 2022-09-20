@@ -9,6 +9,7 @@ import (
 
 	"github.com/form3tech-oss/gc22-concurrent-web-apps-workshop/db"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 type Handler struct {
@@ -27,6 +28,19 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	resp := &Response{
 		Message: "Welcome to the Digital Ice Cream Van!",
 	}
+	writeResponse(w, http.StatusOK, resp)
+}
+
+// OrderByID gets the order by ID provided
+func (h *Handler) OrderByID(w http.ResponseWriter, r *http.Request) {
+	orderID := mux.Vars(r)["id"]
+	order := h.OrdersDB.Get(orderID)
+	// TODO: Implement not found
+
+	resp := &Response{
+		Order: order,
+	}
+	// Send an HTTP success status & the return value from the repo
 	writeResponse(w, http.StatusOK, resp)
 }
 
@@ -51,10 +65,11 @@ func (h *Handler) OrderUpsert(w http.ResponseWriter, r *http.Request) {
 		}
 		writeResponse(w, http.StatusUnprocessableEntity, resp)
 	}
+
 	order.ID = uuid.NewString()
 	order.Status = db.New.String()
 	// Call the repository method corresponding to the operation
-	h.OrdersDB.Upsert(order)
+	order = h.OrdersDB.Upsert(order)
 	resp := &Response{
 		Order: order,
 	}
