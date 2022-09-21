@@ -10,9 +10,14 @@ import (
 )
 
 func main() {
-	orders := db.NewOrders()
+	inventory := map[string]int{
+		"Solero":     1,
+		"Magnum":     1,
+		"ScrewBalls": 1,
+	}
+	s := db.NewInventoryService(inventory)
 	handler := &handlers.Handler{
-		OrdersDB: orders,
+		OrdersDB: db.NewOrders(s),
 	}
 
 	router := handlers.ConfigureServer(handler)

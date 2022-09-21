@@ -69,10 +69,17 @@ func (h *Handler) OrderUpsert(w http.ResponseWriter, r *http.Request) {
 	order.ID = uuid.NewString()
 	order.Status = db.New.String()
 	// Call the repository method corresponding to the operation
-	order = h.OrdersDB.Upsert(order)
+	order, err = h.OrdersDB.Upsert(order)
 	resp := &Response{
 		Order: order,
+		Error: err,
 	}
+
+	if err != nil {
+		writeResponse(w, http.StatusBadRequest, resp)
+		return
+	}
+
 	// Send an HTTP success status & the return value from the repo
 	writeResponse(w, http.StatusOK, resp)
 }
