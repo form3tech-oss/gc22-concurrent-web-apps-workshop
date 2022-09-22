@@ -1,0 +1,6 @@
+{
+    "items":[
+      { "name": "Solero", "price": 1.49, "quantity": 1 },
+      { "name": "Magnum", "price": 1.99, "quantity": 1 }
+    ]
+}
