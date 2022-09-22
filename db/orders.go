@@ -34,8 +34,12 @@ func NewOrders(inventory *InventoryService) *Orders {
 	}
 }
 
-func (n *Orders) Get(o string) Order {
-	return n.orders[o]
+func (n *Orders) Get(id string) (*Order, error) {
+	o, ok := n.orders[id]
+	if !ok {
+		return nil, fmt.Errorf("no order for id %s found", id)
+	}
+	return &o, nil
 }
 
 // Upsert creates or updates a new order
@@ -48,7 +52,7 @@ func (n *Orders) Upsert(o Order) (Order, error) {
 	o.Total = fmt.Sprintf("%.2f", t)
 	o.Status = Completed.String()
 
-	err := n.inventory.DecrementStock(o.Items)
+	err := n.inventory.PlaceOrder(o.Items)
 	if err != nil {
 		o.Status = Rejected.String()
 	}

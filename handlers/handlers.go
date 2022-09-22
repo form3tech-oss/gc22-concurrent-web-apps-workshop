@@ -13,13 +13,27 @@ import (
 )
 
 type Handler struct {
-	OrdersDB *db.Orders
+	OrdersDB    *db.Orders
+	InventoryDB *db.InventoryService
+}
+
+type MenuItem struct {
+	Name     string `json:"name"`
+	Quantity string `json:"quantity"`
 }
 
 type Response struct {
-	Message string   `json:"message,omitempty"`
-	Error   error    `json:"error,omitempty"`
-	Order   db.Order `json:"order,omitempty"`
+	Message string        `json:"message,omitempty"`
+	Menu    []db.MenuItem `json:"menu,omitempty"`
+	Error   error         `json:"error,omitempty"`
+	Order   *db.Order     `json:"order,omitempty"`
+}
+
+func NewHandler(o *db.Orders, i *db.InventoryService) *Handler {
+	return &Handler{
+		OrdersDB:    o,
+		InventoryDB: i,
+	}
 }
 
 // Index is invoked by HTTP GET /
@@ -27,6 +41,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	// Send an HTTP status & a hardcoded message
 	resp := &Response{
 		Message: "Welcome to the Digital Ice Cream Van!",
+		Menu:    h.InventoryDB.GetStock(),
 	}
 	writeResponse(w, http.StatusOK, resp)
 }
@@ -34,14 +49,18 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 // OrderByID gets the order by ID provided
 func (h *Handler) OrderByID(w http.ResponseWriter, r *http.Request) {
 	orderID := mux.Vars(r)["id"]
-	order := h.OrdersDB.Get(orderID)
-	// TODO: Implement not found
-
-	resp := &Response{
-		Order: order,
+	order, err := h.OrdersDB.Get(orderID)
+	if err != nil {
+		writeResponse(w, http.StatusNotFound, &Response{
+			Error: err,
+		})
+		return
 	}
+
 	// Send an HTTP success status & the return value from the repo
-	writeResponse(w, http.StatusOK, resp)
+	writeResponse(w, http.StatusOK, &Response{
+		Order: order,
+	})
 }
 
 // OrderShow is invoked by HTTP POST /orders
@@ -71,7 +90,7 @@ func (h *Handler) OrderUpsert(w http.ResponseWriter, r *http.Request) {
 	// Call the repository method corresponding to the operation
 	order, err = h.OrdersDB.Upsert(order)
 	resp := &Response{
-		Order: order,
+		Order: &order,
 		Error: err,
 	}
 

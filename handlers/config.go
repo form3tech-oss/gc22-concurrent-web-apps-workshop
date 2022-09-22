@@ -13,6 +13,6 @@ func ConfigureServer(handler *Handler) *mux.Router {
 	router.Methods("GET").Path("/").Handler(http.HandlerFunc(handler.Index))
 	router.Methods("GET").Path("/orders/{id}").Handler(http.HandlerFunc(handler.OrderByID))
 	router.Methods("POST").Path("/orders").Handler(http.HandlerFunc(handler.OrderUpsert))
-
+	
 	return router
 }
