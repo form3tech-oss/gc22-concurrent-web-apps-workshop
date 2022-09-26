@@ -12,7 +12,7 @@ import (
 	"github.com/form3tech-oss/gc22-concurrent-web-apps-workshop/handlers"
 )
 
-const stockPath = "cmd/server/stock.json"
+const stockPath = "./cmd/server/stock.json"
 
 func main() {
 	inventory := importStock()
@@ -27,6 +27,9 @@ func main() {
 
 func importStock() map[string]db.MenuItem {
 	var stock []db.MenuItem
+
+	dir, _ := os.Getwd()
+	log.Print(dir)
 
 	file, err := os.Open(stockPath)
 	if err != nil {
