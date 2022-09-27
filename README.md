@@ -26,7 +26,7 @@ Senior Software Engineer @ [Form3](https://twitter.com/Form3Tech)
 - Follow [Setup instructions](#setup-instructions).
 - From the root of your cloned repository, run the following command in the terminal. The server will be listening at `http://localhost:3000/orders`. 
 ```bash
-$ go run cmd/server/server.go
+$ go run cmd/server/main.go
 ```
 
 ## Run Load Tests
