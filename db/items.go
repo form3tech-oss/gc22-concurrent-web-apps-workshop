@@ -23,7 +23,7 @@ func (s *InventoryService) PlaceOrder(items []LineItem) error {
 		}
 
 		if menuItem.Quantity < v.Quantity {
-			return fmt.Errorf("insufficent stock, got %d but wanted %d",
+			return fmt.Errorf("insufficient stock, got %d but wanted %d",
 				menuItem.Quantity, v.Quantity)
 		}
 	}

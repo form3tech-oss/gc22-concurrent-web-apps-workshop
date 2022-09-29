@@ -106,7 +106,9 @@ func (h *Handler) OrderUpsert(w http.ResponseWriter, r *http.Request) {
 // writeResponse is a helper method that allows to write and HTTP status & response
 func writeResponse(w http.ResponseWriter, status int, resp *Response) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(status)
+	if status != http.StatusOK {
+		w.WriteHeader(status)
+	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		fmt.Fprintf(w, "error encoding resp %v:%s", resp, err)
 	}
