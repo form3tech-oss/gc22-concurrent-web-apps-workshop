@@ -1,14 +1,19 @@
 [
     {
         "name": "Solero",
-        "quantity": 5
+        "quantity": 5,
+        "price": 1.99
     }, 
     {
         "name": "Magnum",
-        "quantity": 5
+        "quantity": 5,
+        "price": 1.49
+
     }, 
     {
         "name": "ScrewBalls",
-        "quantity": 3
+        "quantity": 3,
+        "price": 2.99
+
     }
 ]

@@ -44,18 +44,12 @@ func (n *Orders) Get(id string) (*Order, error) {
 
 // Upsert creates or updates a new order
 func (n *Orders) Upsert(o Order) (Order, error) {
-	var t float32
-	for _, v := range o.Items {
-		t += v.Price * float32(v.Quantity)
-	}
-
-	o.Total = fmt.Sprintf("%.2f", t)
-	o.Status = Completed.String()
-
-	err := n.inventory.PlaceOrder(o.Items)
+	total, err := n.inventory.PlaceOrder(o.Items)
 	if err != nil {
 		o.Status = Rejected.String()
 	}
+	o.Total = fmt.Sprintf("%.2f", total)
+	o.Status = Completed.String()
 
 	n.orders[o.ID] = o
 
@@ -63,7 +57,6 @@ func (n *Orders) Upsert(o Order) (Order, error) {
 }
 
 type LineItem struct {
-	Name     string  `json:"name"`
-	Price    float32 `json:"price"`
-	Quantity int     `json:"quantity"`
+	Name     string `json:"name"`
+	Quantity int    `json:"quantity"`
 }
