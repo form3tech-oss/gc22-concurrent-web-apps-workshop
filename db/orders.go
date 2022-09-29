@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"sync"
 )
 
 // Order contains the fields of our orders.
@@ -25,6 +26,7 @@ type LineItem struct {
 
 // OrderService is our database type.
 type OrderService struct {
+	lock sync.Mutex
 	orders    map[string]Order
 	inventory *InventoryService
 }
@@ -46,6 +48,8 @@ func NewOrders(inventory *InventoryService) *OrderService {
 
 // Get returns a given order or error if none exists.
 func (os *OrderService) Get(id string) (*Order, error) {
+	os.lock.Lock()
+	defer os.lock.Unlock()
 	o, ok := os.orders[id]
 	if !ok {
 		return nil, fmt.Errorf("no order for id %s found", id)
@@ -57,6 +61,8 @@ func (os *OrderService) Get(id string) (*Order, error) {
 func (os *OrderService) Upsert(o Order) (Order, error) {
 	o.ID = uuid.NewString()
 	o.Status = New.String()
+	os.lock.Lock()
+	defer os.lock.Unlock()
 	total, err := os.inventory.PlaceOrder(o.Items)
 	if err != nil {
 		o.Status = Rejected.String()
