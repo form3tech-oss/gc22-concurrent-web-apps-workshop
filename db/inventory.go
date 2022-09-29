@@ -1,9 +1,13 @@
 package db
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 // InventoryService is our database type.
 type InventoryService struct {
+	lock  sync.Mutex
 	stock map[string]MenuItem
 }
 
@@ -48,6 +52,8 @@ func (s *InventoryService) PlaceOrder(items []LineItem) (float64, error) {
 
 // GetStock returns the current stock available.
 func (s *InventoryService) GetStock() []MenuItem {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	var items []MenuItem
 	for _, v := range s.stock {
 		items = append(items, v)
