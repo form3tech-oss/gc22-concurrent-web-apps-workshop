@@ -2,12 +2,13 @@ package db
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
-	"sync"
 )
 
 // Order contains the fields of our orders.
@@ -26,9 +27,10 @@ type LineItem struct {
 
 // OrderService is our database type.
 type OrderService struct {
-	lock sync.Mutex
-	orders    map[string]Order
-	inventory *InventoryService
+	lock           sync.Mutex
+	orders         map[string]Order
+	inventory      *InventoryService
+	incomingOrders chan Order
 }
 
 // Sales contains total sales and revenue of the ice cream van.
@@ -39,11 +41,36 @@ type Sales struct {
 }
 
 // NewOrders initialises the Orders service given an InventoryService.
-func NewOrders(inventory *InventoryService) *OrderService {
-	return &OrderService{
-		orders:    make(map[string]Order),
-		inventory: inventory,
+func NewOrders(workerCount int, inventory *InventoryService) *OrderService {
+	n := &OrderService{
+		orders:         make(map[string]Order),
+		inventory:      inventory,
+		incomingOrders: make(chan Order, workerCount),
 	}
+
+	for i := 0; i < workerCount; i++ {
+		go n.processOrderWorker(fmt.Sprintf("Worker-%d", i), n.incomingOrders)
+	}
+	return n
+}
+
+func (os *OrderService) processOrderWorker(id string, in <-chan Order) {
+	log.Printf("%s started up.", id)
+	for {
+		o := <-in
+		err := os.upsert(o)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+}
+
+// Get returns a given order or error if none exists.
+func (os *OrderService) PlaceOrder(o Order) Order {
+	o.ID = uuid.NewString()
+	o.Status = New.String()
+	os.incomingOrders <- o
+	return o
 }
 
 // Get returns a given order or error if none exists.
@@ -58,23 +85,21 @@ func (os *OrderService) Get(id string) (*Order, error) {
 }
 
 // Upsert creates or updates a new order.
-func (os *OrderService) Upsert(o Order) (Order, error) {
-	o.ID = uuid.NewString()
-	o.Status = New.String()
+func (os *OrderService) upsert(o Order) error {
 	os.lock.Lock()
 	defer os.lock.Unlock()
 	total, err := os.inventory.PlaceOrder(o.Items)
 	if err != nil {
 		o.Status = Rejected.String()
 		os.orders[o.ID] = o
-		return o, err
+		return err
 	}
 	o.Total = fmt.Sprintf("%.2f", total)
 	o.Status = Completed.String()
 
 	os.orders[o.ID] = o
 
-	return o, nil
+	return nil
 }
 
 // GetSales returns the sales stats of the order service
