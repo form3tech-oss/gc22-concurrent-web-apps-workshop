@@ -14,11 +14,12 @@ import (
 
 //go:embed stock.json
 var stockFile []byte
+const processWorkerCount = 2
 
 func main() {
 	inventory := importStock()
 	s := db.NewInventoryService(inventory)
-	o := db.NewOrders(s)
+	o := db.NewOrders(processWorkerCount, s)
 	handler := handlers.NewHandler(o, s)
 
 	router := handlers.ConfigureServer(handler)
