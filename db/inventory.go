@@ -27,6 +27,8 @@ func NewInventoryService(s map[string]MenuItem) *InventoryService {
 // PlaceOrder verifies quantities and place an order
 // for the given slice of LineItem.
 func (s *InventoryService) PlaceOrder(items []LineItem) (float64, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	for _, v := range items {
 		menuItem, ok := s.stock[v.Name]
 		if !ok {
