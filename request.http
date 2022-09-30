@@ -6,7 +6,7 @@ POST http://localhost:3000/orders
 
 {
     "items":[
-      { "name": "Solero", "quantity": 10 },
+      { "name": "Solero", "quantity": 1 },
       { "name": "Magnum", "quantity": 1 }
     ]
 }

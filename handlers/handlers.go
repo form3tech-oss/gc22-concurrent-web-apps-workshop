@@ -88,10 +88,10 @@ func (h *Handler) OrderUpsert(w http.ResponseWriter, r *http.Request) {
 	order, err = h.OrdersDB.Upsert(order)
 	resp := &Response{
 		Order: &order,
-		Error: err.Error(),
 	}
 
 	if err != nil {
+		resp.Error = err.Error()
 		writeResponse(w, http.StatusBadRequest, resp)
 		return
 	}
