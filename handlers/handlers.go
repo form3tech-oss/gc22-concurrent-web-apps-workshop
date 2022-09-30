@@ -91,7 +91,7 @@ func (h *Handler) OrderUpsert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call the repository method corresponding to the operation
-	order, err = h.Orders.Upsert(order)
+	order = h.Orders.PlaceOrder(order)
 	resp := &Response{
 		Order: &order,
 	}
