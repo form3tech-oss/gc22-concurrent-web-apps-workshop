@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/form3tech-oss/gc22-concurrent-web-apps-workshop/db"
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
@@ -25,7 +24,7 @@ type MenuItem struct {
 type Response struct {
 	Message string        `json:"message,omitempty"`
 	Menu    []db.MenuItem `json:"menu,omitempty"`
-	Error   error         `json:"error,omitempty"`
+	Error   string        `json:"error,omitempty"`
 	Order   *db.Order     `json:"order,omitempty"`
 }
 
@@ -52,7 +51,7 @@ func (h *Handler) OrderByID(w http.ResponseWriter, r *http.Request) {
 	order, err := h.OrdersDB.Get(orderID)
 	if err != nil {
 		writeResponse(w, http.StatusNotFound, &Response{
-			Error: err,
+			Error: err.Error(),
 		})
 		return
 	}
@@ -72,7 +71,7 @@ func (h *Handler) OrderUpsert(w http.ResponseWriter, r *http.Request) {
 	// Handle any errors & write an error HTTP status & response
 	if err != nil {
 		resp := &Response{
-			Error: fmt.Errorf("invalid order body:%v", err),
+			Error: fmt.Errorf("invalid order body:%v", err).Error(),
 		}
 		writeResponse(w, http.StatusInternalServerError, resp)
 	}
@@ -80,18 +79,16 @@ func (h *Handler) OrderUpsert(w http.ResponseWriter, r *http.Request) {
 	// Handle any errors & write an error HTTP status & response
 	if err := json.Unmarshal(body, &order); err != nil {
 		resp := &Response{
-			Error: fmt.Errorf("invalid order body:%v", err),
+			Error: fmt.Errorf("invalid order body:%v", err).Error(),
 		}
 		writeResponse(w, http.StatusUnprocessableEntity, resp)
 	}
 
-	order.ID = uuid.NewString()
-	order.Status = db.New.String()
 	// Call the repository method corresponding to the operation
 	order, err = h.OrdersDB.Upsert(order)
 	resp := &Response{
 		Order: &order,
-		Error: err,
+		Error: err.Error(),
 	}
 
 	if err != nil {
