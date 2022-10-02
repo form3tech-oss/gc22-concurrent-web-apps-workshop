@@ -23,7 +23,7 @@ func main() {
 
 	router := handlers.ConfigureServer(handler)
 	fmt.Println("Listening on localhost:3000...")
-	log.Fatal(http.ListenAndServe(":3000", router))
+	log.Fatal(http.ListenAndServe("localhost:3000", router))
 }
 
 func importStock() map[string]db.MenuItem {
