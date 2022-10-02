@@ -3,16 +3,17 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
+
+	_ "embed"
 
 	"github.com/form3tech-oss/gc22-concurrent-web-apps-workshop/db"
 	"github.com/form3tech-oss/gc22-concurrent-web-apps-workshop/handlers"
 )
 
-const stockPath = "cmd/server/stock.json"
+//go:embed stock.json
+var stockFile []byte
 
 func main() {
 	inventory := importStock()
@@ -28,17 +29,7 @@ func main() {
 func importStock() map[string]db.MenuItem {
 	var stock []db.MenuItem
 
-	file, err := os.Open(stockPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	b, err := ioutil.ReadAll(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = json.Unmarshal(b, &stock)
+	err := json.Unmarshal(stockFile, &stock)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -47,5 +38,6 @@ func importStock() map[string]db.MenuItem {
 	for _, s := range stock {
 		m[s.Name] = s
 	}
+
 	return m
 }
