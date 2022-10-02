@@ -64,8 +64,6 @@ func (h *Handler) OrderByID(w http.ResponseWriter, r *http.Request) {
 
 // OrderShow is invoked by HTTP POST /orders
 func (h *Handler) OrderUpsert(w http.ResponseWriter, r *http.Request) {
-	// Initialize an order to unmarshal request body into
-	var order db.Order
 	// Read the request body
 	body, err := readRequestBody(r)
 	// Handle any errors & write an error HTTP status & response
@@ -75,6 +73,9 @@ func (h *Handler) OrderUpsert(w http.ResponseWriter, r *http.Request) {
 		}
 		writeResponse(w, http.StatusInternalServerError, resp)
 	}
+
+	// Initialize an order to unmarshal request body into
+	var order db.Order
 	// Unmarshal response to order var
 	// Handle any errors & write an error HTTP status & response
 	if err := json.Unmarshal(body, &order); err != nil {
