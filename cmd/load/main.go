@@ -2,16 +2,23 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"log"
+	"math/rand"
 	"net/http"
 	"sync"
+	"time"
+
+	"github.com/form3tech-oss/gc22-concurrent-web-apps-workshop/db"
 )
 
 const ordersEndpoint string = "http://localhost:3000/orders"
 const indexEndpoint string = "http://localhost:3000/"
 
 const orderCount int = 20
-const maxOrderAmount int = 15
+const maxOrderAmount int = 5
+
+var products = []string{"Solero", "Screwball", "Magnum"}
 
 // Load test the server
 func main() {
@@ -34,28 +41,24 @@ func main() {
 }
 
 func createRandomOrder(orderNumber int) {
-	// rand.Seed(time.Now().UnixNano())
-	// amount := rand.Intn(maxOrderAmount) + 1
-	// product := products[rand.Intn(len(products))]
-	// log.Printf("[simulation-%d]: sending order %+v", orderNumber, item)
+	rand.Seed(time.Now().UnixNano())
+	q := rand.Intn(maxOrderAmount) + 1
+	n := products[rand.Intn(len(products))]
 
-	// o := db.Order{
-	// 	Items: []db.LineItem{
-	// 		db.LineItem{
-	// 			Name:     "",
-	// 			Quantity: 0,
-	// 		},
-	// 	},
-	// }
+	o := db.Order{
+		Items: []db.LineItem{
+			{Name: n, Quantity: q},
+		},
+	}
 
-	b := []byte(`
-		"items":[
-			{ "name": "Solero", "quantity": 1 },
-			{ "name": "Magnum", "quantity": 1 }
-		]
-	`)
+	log.Printf("[simulation-%d]: sending order %+v", orderNumber, o.Items)
 
-	req, err := http.NewRequest(http.MethodPost, ordersEndpoint, bytes.NewBuffer(b))
+	json, err := json.Marshal(o)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, ordersEndpoint, bytes.NewBuffer(json))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -66,7 +69,7 @@ func createRandomOrder(orderNumber int) {
 		log.Fatal(err)
 	}
 
-	log.Printf("[simulation-%d]: completed", orderNumber)
+	log.Printf("[simulation-%d]: order placed", orderNumber)
 }
 
 func checkHealth() error {
