@@ -15,10 +15,10 @@ import (
 const ordersEndpoint string = "http://localhost:3000/orders"
 const indexEndpoint string = "http://localhost:3000/"
 
-const orderCount int = 20
-const maxOrderAmount int = 5
+const orderCount int = 50
+const maxOrderAmount int = 3
 
-var products = []string{"Solero", "Screwball", "Magnum"}
+var products = []string{"Solero", "ScrewBalls", "Magnum"}
 
 // Load test the server
 func main() {
@@ -65,11 +65,11 @@ func createRandomOrder(orderNumber int) {
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
-	if _, err = client.Do(req); err != nil {
+	if resp, err := client.Do(req); err != nil {
 		log.Fatal(err)
+	} else {
+		log.Printf("[simulation-%d]: order placed [status: %d]", orderNumber, resp.StatusCode)
 	}
-
-	log.Printf("[simulation-%d]: order placed", orderNumber)
 }
 
 func checkHealth() error {
