@@ -31,13 +31,9 @@ $ go run cmd/server/main.go
 
 ## Run Load Tests
 - Follow the [Setup instructions](#setup-instructions) and [Start the application](#start-the-application) steps.
-- On first run, install the load testing tool. 
-```bash
-$ go get -u github.com/rakyll/hey
-```
 - From the root of the cloned repository, start a new terminal window and run the following command.
 ```bash
-$ hey -n 5 -c 2 -z 3s -m POST -T "application/json" -d ./body.txt http://localhost:3000/orders
+$ go run cmd/load/main.go
 ```
 
 ## We look forward to seeing you all at our workshop! 
