@@ -113,6 +113,15 @@ func (h *Handler) Sales(w http.ResponseWriter, r *http.Request) {
 	writeResponse(w, http.StatusOK, resp)
 }
 
+// Close is invoked by POST /close.
+func (h *Handler) Close(w http.ResponseWriter, r *http.Request) {
+	h.Orders.Close()
+	resp := &Response{
+		Message: "The Digital Ice Cream Van is now closed!",
+	}
+	writeResponse(w, http.StatusOK, resp)
+}
+
 // writeResponse is a helper method that allows to write and HTTP status & response
 func writeResponse(w http.ResponseWriter, status int, resp *Response) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")

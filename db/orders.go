@@ -31,6 +31,8 @@ type OrderService struct {
 	orders         map[string]Order
 	inventory      *InventoryService
 	incomingOrders chan Order
+	done           chan struct{}
+	isClosed       bool
 }
 
 // Sales contains total sales and revenue of the ice cream van.
@@ -46,21 +48,29 @@ func NewOrders(workerCount int, inventory *InventoryService) *OrderService {
 		orders:         make(map[string]Order),
 		inventory:      inventory,
 		incomingOrders: make(chan Order, workerCount),
+		done:           make(chan struct{}),
 	}
 
 	for i := 0; i < workerCount; i++ {
-		go n.processOrderWorker(fmt.Sprintf("Worker-%d", i), n.incomingOrders)
+		go n.processOrderWorker(fmt.Sprintf("Worker-%d", i), n.incomingOrders, n.done)
 	}
 	return n
 }
 
-func (os *OrderService) processOrderWorker(id string, in <-chan Order) {
+func (os *OrderService) processOrderWorker(id string, in <-chan Order,
+	done <-chan struct{}) {
 	log.Printf("%s started up.", id)
 	for {
-		o := <-in
-		err := os.upsert(o)
-		if err != nil {
-			log.Println(err)
+		select {
+		case o := <-in:
+			log.Println(o)
+			err := os.upsert(o)
+			if err != nil {
+				log.Println(err)
+			}
+		case <-done:
+			log.Printf("%s shut down.", id)
+			return
 		}
 	}
 }
@@ -68,8 +78,12 @@ func (os *OrderService) processOrderWorker(id string, in <-chan Order) {
 // Get returns a given order or error if none exists.
 func (os *OrderService) PlaceOrder(o Order) Order {
 	o.ID = uuid.NewString()
-	o.Status = New.String()
-	os.incomingOrders <- o
+	if !os.isClosed {
+		o.Status = New.String()
+		os.incomingOrders <- o
+		return o
+	}
+	o.Status = Rejected.String()
 	return o
 }
 
@@ -100,6 +114,14 @@ func (os *OrderService) upsert(o Order) error {
 	os.orders[o.ID] = o
 
 	return nil
+}
+
+// Close closes the orders app for taking any new orders
+func (os *OrderService) Close() {
+	if !os.isClosed {
+		close(os.done)
+		os.isClosed = true
+	}
 }
 
 // GetSales returns the sales stats of the order service
