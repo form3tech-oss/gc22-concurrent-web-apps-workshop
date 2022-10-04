@@ -63,7 +63,6 @@ func (os *OrderService) processOrderWorker(id string, in <-chan Order,
 	for {
 		select {
 		case o := <-in:
-			log.Println(o)
 			err := os.upsert(o)
 			if err != nil {
 				log.Println(err)
