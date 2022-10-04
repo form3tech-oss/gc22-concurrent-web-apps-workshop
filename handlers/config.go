@@ -14,6 +14,7 @@ func ConfigureServer(handler *Handler) *mux.Router {
 	router.Methods("GET").Path("/orders/{id}").Handler(http.HandlerFunc(handler.OrderByID))
 	router.Methods("POST").Path("/orders").Handler(http.HandlerFunc(handler.OrderUpsert))
 	router.Methods("GET").Path("/sales").Handler(http.HandlerFunc(handler.Sales))
+	router.Methods("POST").Path("/close").Handler(http.HandlerFunc(handler.Close))
 	
 	return router
 }
