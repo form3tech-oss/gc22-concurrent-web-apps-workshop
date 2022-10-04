@@ -14,3 +14,7 @@ POST http://localhost:3000/orders
 
 @id = {{createOrder.response.body.order.id}}
 GET http://localhost:3000/orders/{{id}}
+
+###
+
+GET http://localhost:3000/sales

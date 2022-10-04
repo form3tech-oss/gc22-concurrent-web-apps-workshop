@@ -2,23 +2,14 @@ package db
 
 import (
 	"fmt"
+	"math/rand"
+	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 )
 
-type OrderStatus int
-
-const (
-	New OrderStatus = iota
-	InProgress
-	Completed
-	Rejected
-)
-
-func (o OrderStatus) String() string {
-	return [...]string{"NEW", "IN_PROGRESS", "COMPLETED", "REJECTED"}[o]
-}
-
+// Order contains the fields of our orders.
 type Order struct {
 	ID     string     `json:"id"`
 	Items  []LineItem `json:"items"`
@@ -26,45 +17,85 @@ type Order struct {
 	Total  string     `json:"total,omitempty"`
 }
 
-type Orders struct {
+// LineItem contains all the different items of an Order.
+type LineItem struct {
+	Name     string `json:"name"`
+	Quantity int    `json:"quantity"`
+}
+
+// OrderService is our database type.
+type OrderService struct {
 	orders    map[string]Order
 	inventory *InventoryService
 }
 
-func NewOrders(inventory *InventoryService) *Orders {
-	return &Orders{
+// Sales contains total sales and revenue of the ice cream van.
+type Sales struct {
+	CompletedOrders int    `json:"completed_orders"`
+	RejectedOrders  int    `json:"rejected_orders"`
+	TotalRevenue    string `json:"total_revenue"`
+}
+
+// NewOrders initialises the Orders service given an InventoryService.
+func NewOrders(inventory *InventoryService) *OrderService {
+	return &OrderService{
 		orders:    make(map[string]Order),
 		inventory: inventory,
 	}
 }
 
-func (n *Orders) Get(id string) (*Order, error) {
-	o, ok := n.orders[id]
+// Get returns a given order or errro if none exists.
+func (os *OrderService) Get(id string) (*Order, error) {
+	o, ok := os.orders[id]
 	if !ok {
 		return nil, fmt.Errorf("no order for id %s found", id)
 	}
 	return &o, nil
 }
 
-// Upsert creates or updates a new order
-func (n *Orders) Upsert(o Order) (Order, error) {
+// Upsert creates or updates a new order.
+func (os *OrderService) Upsert(o Order) (Order, error) {
 	o.ID = uuid.NewString()
 	o.Status = New.String()
-	total, err := n.inventory.PlaceOrder(o.Items)
+	total, err := os.inventory.PlaceOrder(o.Items)
 	if err != nil {
 		o.Status = Rejected.String()
-		n.orders[o.ID] = o
+		os.orders[o.ID] = o
 		return o, err
 	}
 	o.Total = fmt.Sprintf("%.2f", total)
 	o.Status = Completed.String()
 
-	n.orders[o.ID] = o
+	os.orders[o.ID] = o
 
 	return o, nil
 }
 
-type LineItem struct {
-	Name     string `json:"name"`
-	Quantity int    `json:"quantity"`
+// GetSales returns the sales stats of the order service
+// This is a costly/long running operation.
+func (os *OrderService) GetSales() *Sales {
+	getRandomSleep(500)
+	revenue := 0.0
+	sales := Sales{}
+	for _, o := range os.orders {
+		if o.Status == Completed.String() {
+			sales.CompletedOrders++
+			t, _ := strconv.ParseFloat(o.Total, 64)
+			revenue += t
+		}
+		if o.Status == Rejected.String() {
+			sales.RejectedOrders++
+		}
+	}
+	sales.TotalRevenue = fmt.Sprintf("%.2f", revenue)
+	return &sales
+}
+
+// getRandomSleep returns a random sleep up to given max amount.
+// This function is used to simulate long running/costly operations.
+func getRandomSleep(maxMillis int) {
+	rand.Seed(time.Now().Unix())
+	n := rand.Intn(maxMillis) + 10
+
+	time.Sleep(time.Duration(n) * time.Millisecond)
 }

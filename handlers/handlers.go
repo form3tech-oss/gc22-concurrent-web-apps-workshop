@@ -11,36 +11,41 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// Handler contains the handler and all its dependencies.
 type Handler struct {
-	OrdersDB    *db.Orders
-	InventoryDB *db.InventoryService
+	Orders    *db.OrderService
+	Inventory *db.InventoryService
 }
 
+// MenuItem is the externally set menu item type.
 type MenuItem struct {
 	Name     string `json:"name"`
 	Quantity string `json:"quantity"`
 }
 
+// Response contains all the response types of our handlers.
 type Response struct {
 	Message string        `json:"message,omitempty"`
 	Menu    []db.MenuItem `json:"menu,omitempty"`
 	Error   string        `json:"error,omitempty"`
 	Order   *db.Order     `json:"order,omitempty"`
+	Sales   *db.Sales     `json:"sales,omitempty"`
 }
 
-func NewHandler(o *db.Orders, i *db.InventoryService) *Handler {
+// NewHandler initialises a new handler, given dependencies.
+func NewHandler(o *db.OrderService, i *db.InventoryService) *Handler {
 	return &Handler{
-		OrdersDB:    o,
-		InventoryDB: i,
+		Orders:    o,
+		Inventory: i,
 	}
 }
 
-// Index is invoked by HTTP GET /
+// Index is invoked by HTTP GET /.
 func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	// Send an HTTP status & a hardcoded message
 	resp := &Response{
 		Message: "Welcome to the Digital Ice Cream Van!",
-		Menu:    h.InventoryDB.GetStock(),
+		Menu:    h.Inventory.GetStock(),
 	}
 	writeResponse(w, http.StatusOK, resp)
 }
@@ -48,7 +53,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 // OrderByID gets the order by ID provided
 func (h *Handler) OrderByID(w http.ResponseWriter, r *http.Request) {
 	orderID := mux.Vars(r)["id"]
-	order, err := h.OrdersDB.Get(orderID)
+	order, err := h.Orders.Get(orderID)
 	if err != nil {
 		writeResponse(w, http.StatusNotFound, &Response{
 			Error: err.Error(),
@@ -62,7 +67,7 @@ func (h *Handler) OrderByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// OrderShow is invoked by HTTP POST /orders
+// OrderShow is invoked by HTTP POST /orders.
 func (h *Handler) OrderUpsert(w http.ResponseWriter, r *http.Request) {
 	// Read the request body
 	body, err := readRequestBody(r)
@@ -86,11 +91,10 @@ func (h *Handler) OrderUpsert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call the repository method corresponding to the operation
-	order, err = h.OrdersDB.Upsert(order)
+	order, err = h.Orders.Upsert(order)
 	resp := &Response{
 		Order: &order,
 	}
-
 	if err != nil {
 		resp.Error = err.Error()
 		writeResponse(w, http.StatusBadRequest, resp)
@@ -98,6 +102,14 @@ func (h *Handler) OrderUpsert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send an HTTP success status & the return value from the repo
+	writeResponse(w, http.StatusOK, resp)
+}
+
+// Sales is invoked by GET /sales.
+func (h *Handler) Sales(w http.ResponseWriter, r *http.Request) {
+	resp := &Response{
+		Sales: h.Orders.GetSales(),
+	}
 	writeResponse(w, http.StatusOK, resp)
 }
 
@@ -112,7 +124,8 @@ func writeResponse(w http.ResponseWriter, status int, resp *Response) {
 	}
 }
 
-// readRequestBody is a helper method that allows to read a request body and return any errors
+// readRequestBody is a helper method that
+// allows to read a request body and return any errors.
 func readRequestBody(r *http.Request) ([]byte, error) {
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {

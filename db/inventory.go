@@ -2,20 +2,26 @@ package db
 
 import "fmt"
 
+// InventoryService is our database type.
 type InventoryService struct {
 	stock map[string]MenuItem
 }
 
+// MenuItem is the type of items available.
 type MenuItem struct {
 	Name     string  `json:"name"`
 	Quantity int     `json:"quantity"`
 	Price    float64 `json:"price"`
 }
 
+// NewInventoryService creates a new service, given an map of
+// items to initialise from.
 func NewInventoryService(s map[string]MenuItem) *InventoryService {
 	return &InventoryService{stock: s}
 }
 
+// PlaceOrder verifies quantities and place an order
+// for the given slice of LineItem.
 func (s *InventoryService) PlaceOrder(items []LineItem) (float64, error) {
 	for _, v := range items {
 		menuItem, ok := s.stock[v.Name]
@@ -40,6 +46,7 @@ func (s *InventoryService) PlaceOrder(items []LineItem) (float64, error) {
 	return total, nil
 }
 
+// GetStock returns the current stock available.
 func (s *InventoryService) GetStock() []MenuItem {
 	var items []MenuItem
 	for _, v := range s.stock {
