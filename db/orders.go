@@ -80,6 +80,8 @@ func (os *OrderService) Upsert(o Order) (Order, error) {
 // GetSales returns the sales stats of the order service
 // This is a costly/long running operation.
 func (os *OrderService) GetSales() *Sales {
+	os.lock.Lock()
+	defer os.lock.Unlock()
 	getRandomSleep(500)
 	revenue := 0.0
 	sales := Sales{}
