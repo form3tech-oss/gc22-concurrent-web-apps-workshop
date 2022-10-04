@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"math/rand"
@@ -117,9 +118,22 @@ func (os *OrderService) Close() {
 	})
 }
 
-// GetSales returns the sales stats of the order service
+// GetSales retuns the sales stats of the order service or an error.
+func (os *OrderService) GetSales(ctx context.Context) (*Sales, error) {
+	result := make(chan Sales)
+	go os.calculateSales(result)
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case result := <-result:
+		return &result, nil
+	}
+
+}
+
+// calculateSales calculates the sales stats of the order service
 // This is a costly/long running operation.
-func (os *OrderService) GetSales() *Sales {
+func (os *OrderService) calculateSales(result chan<- Sales) {
 	os.lock.Lock()
 	defer os.lock.Unlock()
 	getRandomSleep(500)
@@ -136,7 +150,7 @@ func (os *OrderService) GetSales() *Sales {
 		}
 	}
 	sales.TotalRevenue = fmt.Sprintf("%.2f", revenue)
-	return &sales
+	result <- sales
 }
 
 // getRandomSleep returns a random sleep up to given max amount.

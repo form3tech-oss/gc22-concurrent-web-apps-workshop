@@ -1,15 +1,19 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/form3tech-oss/gc22-concurrent-web-apps-workshop/db"
 	"github.com/gorilla/mux"
 )
+
+const salesTimeout = 250 * time.Millisecond
 
 // Handler contains the handler and all its dependencies.
 type Handler struct {
@@ -107,8 +111,18 @@ func (h *Handler) OrderUpsert(w http.ResponseWriter, r *http.Request) {
 
 // Sales is invoked by GET /sales.
 func (h *Handler) Sales(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), salesTimeout)
+	defer cancel()
+	sales, err := h.Orders.GetSales(ctx)
+	if err != nil {
+		resp := &Response{
+			Error: err.Error(),
+		}
+		writeResponse(w, http.StatusInternalServerError, resp)
+		return
+	}
 	resp := &Response{
-		Sales: h.Orders.GetSales(),
+		Sales: sales,
 	}
 	writeResponse(w, http.StatusOK, resp)
 }
