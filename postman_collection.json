@@ -98,7 +98,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"items\":[\n      { \"name\": \"Solero\", \"price\": 1.49, \"quantity\": 1 },\n      { \"name\": \"Magnum\", \"price\": 1.99, \"quantity\": 1 }\n    ]\n}",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
