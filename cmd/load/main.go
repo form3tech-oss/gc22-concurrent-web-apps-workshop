@@ -77,6 +77,7 @@ func createRandomOrder(orderNumber int) {
 	} else {
 		var r handlers.Response
 		body, _ := ioutil.ReadAll(resp.Body)
+		defer resp.Body.Close()
 		if err := json.Unmarshal(body, &r); err == nil {
 			log.Printf("[simulation-%d]: failed to place order [status: %d, reason: %s]", orderNumber, resp.StatusCode, r.Error)
 		}
