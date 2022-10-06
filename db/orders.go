@@ -33,6 +33,7 @@ type OrderService struct {
 	incomingOrders chan Order
 	done           chan struct{}
 	isClosed       bool
+	once           sync.Once
 }
 
 // Sales contains total sales and revenue of the ice cream van.
@@ -117,10 +118,10 @@ func (os *OrderService) upsert(o Order) error {
 
 // Close closes the orders app for taking any new orders
 func (os *OrderService) Close() {
-	if !os.isClosed {
+	os.once.Do(func() {
 		close(os.done)
 		os.isClosed = true
-	}
+	})
 }
 
 // GetSales returns the sales stats of the order service
