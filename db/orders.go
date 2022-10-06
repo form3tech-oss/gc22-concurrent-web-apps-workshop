@@ -31,7 +31,6 @@ type OrderService struct {
 	orders         map[string]Order
 	inventory      *InventoryService
 	incomingOrders chan Order
-	done           chan struct{}
 	isClosed       bool
 	once           sync.Once
 }
@@ -49,30 +48,24 @@ func NewOrders(workerCount int, inventory *InventoryService) *OrderService {
 		orders:         make(map[string]Order),
 		inventory:      inventory,
 		incomingOrders: make(chan Order, workerCount),
-		done:           make(chan struct{}),
 	}
 
 	for i := 0; i < workerCount; i++ {
-		go n.processOrderWorker(fmt.Sprintf("Worker-%d", i), n.incomingOrders, n.done)
+		go n.processOrderWorker(fmt.Sprintf("Worker-%d", i), n.incomingOrders)
 	}
 	return n
 }
 
-func (os *OrderService) processOrderWorker(id string, in <-chan Order,
-	done <-chan struct{}) {
+func (os *OrderService) processOrderWorker(id string, in <-chan Order) {
 	log.Printf("%s started up.", id)
-	for {
-		select {
-		case o := <-in:
-			err := os.upsert(o)
-			if err != nil {
-				log.Println(err)
-			}
-		case <-done:
-			log.Printf("%s shut down.", id)
-			return
+	for o := range in {
+		err := os.upsert(o)
+		if err != nil {
+			log.Println(err)
 		}
 	}
+	log.Printf("%s shut down.", id)
+
 }
 
 // Get returns a given order or error if none exists.
@@ -119,7 +112,7 @@ func (os *OrderService) upsert(o Order) error {
 // Close closes the orders app for taking any new orders
 func (os *OrderService) Close() {
 	os.once.Do(func() {
-		close(os.done)
+		close(os.incomingOrders)
 		os.isClosed = true
 	})
 }
