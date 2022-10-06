@@ -20,7 +20,7 @@ Senior Software Engineer @ [Form3](https://twitter.com/Form3Tech)
 - Sign up for a [GitHub](https://github.com/signup) account, if you do not already have one. 
 - [Clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) this repository locally. 
 - Computers should be capable of modern software development, such as access to install and run binaries, install a code editor, etc. 
-- *Optional:* Install [Postman](https://www.postman.com/downloads/), as we will be sending requests to the application. We will also provide commandline alternatives usin [cURL](https://curl.se/docs/install.html).
+- *Optional:* Install [Postman](https://www.postman.com/downloads/), as we will be sending requests to the application. We will also provide command line alternatives using [cURL](https://curl.se/docs/install.html).
 
 ## Start the application
 - Follow [Setup instructions](#setup-instructions).

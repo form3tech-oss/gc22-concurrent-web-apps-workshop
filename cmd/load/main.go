@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/form3tech-oss/gc22-concurrent-web-apps-workshop/db"
+	"github.com/form3tech-oss/gc22-concurrent-web-apps-workshop/handlers"
 )
 
 const ordersEndpoint string = "http://localhost:3000/orders"
@@ -53,22 +55,32 @@ func createRandomOrder(orderNumber int) {
 
 	log.Printf("[simulation-%d]: sending order %+v", orderNumber, o.Items)
 
-	json, err := json.Marshal(o)
+	j, err := json.Marshal(o)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, ordersEndpoint, bytes.NewBuffer(json))
+	req, err := http.NewRequest(http.MethodPost, ordersEndpoint, bytes.NewBuffer(j))
 	if err != nil {
 		log.Fatal(err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
-	if resp, err := client.Do(req); err != nil {
+	resp, err := client.Do(req)
+	if err != nil {
 		log.Fatal(err)
-	} else {
+	}
+
+	if resp.StatusCode == http.StatusOK {
 		log.Printf("[simulation-%d]: order placed [status: %d]", orderNumber, resp.StatusCode)
+	} else {
+		var r handlers.Response
+		body, _ := ioutil.ReadAll(resp.Body)
+		defer resp.Body.Close()
+		if err := json.Unmarshal(body, &r); err == nil {
+			log.Printf("[simulation-%d]: failed to place order [status: %d, reason: %s]", orderNumber, resp.StatusCode, r.Error)
+		}
 	}
 }
 

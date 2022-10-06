@@ -44,7 +44,7 @@ func NewOrders(inventory *InventoryService) *OrderService {
 	}
 }
 
-// Get returns a given order or errro if none exists.
+// Get returns a given order or error if none exists.
 func (os *OrderService) Get(id string) (*Order, error) {
 	o, ok := os.orders[id]
 	if !ok {
